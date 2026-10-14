@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spowdi Yatta Storybook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;800&family=Noto+Serif:wght@700;800&display=swap">
+<style>
+/* Layout: a night-sky reading stage; the book sits centred and fills the height, controls in one quiet bar below. Single deliberate dark look (Spowdi Night Sky). */
+:root{
+  --night:#0B1B2A; --night-2:#132A3F; --line:#24425e;
+  --cloud:#DFE7E9; --muted:#9fb3c0;
+  --water:#2A91DB; --sun:#FF9F2F; --soil:#FE5B3A;
+  --display:"Noto Serif",Georgia,"Times New Roman",serif;
+  --body:"Noto Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--cloud);font-family:var(--body);overflow:hidden;
+  background-image:radial-gradient(120% 80% at 50% 0%, #17324b 0%, var(--night) 60%);}
+.app{height:100%;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 8px;box-sizing:border-box;gap:8px}
+header{display:flex;align-items:center;gap:12px;min-width:0}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand h1{font:800 clamp(16px,2.2vw,22px)/1.1 var(--display);margin:0;text-wrap:balance;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.chips{margin-left:auto;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:transparent;color:var(--cloud);font:700 12px var(--body);padding:6px 11px;border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--water)}
+.chip[aria-current="true"]{background:var(--sun);border-color:var(--sun);color:var(--night)}
+.chip:focus-visible,.nav:focus-visible,.tool:focus-visible,.thumb:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+.stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;perspective:2200px;touch-action:pan-y;user-select:none}
+.book{display:flex;height:100%;max-width:100%;align-items:center;justify-content:center;gap:0;transform-style:preserve-3d}
+.page{flex:none;background:#fff;box-shadow:0 18px 40px rgba(0,0,0,.45);overflow:hidden;position:relative}
+.page img{width:100%;height:100%;display:block;object-fit:contain;-webkit-user-drag:none}
+.book.spread .page:first-child{border-radius:6px 0 0 6px;box-shadow:-6px 18px 40px rgba(0,0,0,.45)}
+.book.spread .page:last-child{border-radius:0 6px 6px 0}
+.book.spread .page:first-child::after{content:"";position:absolute;inset:0 0 0 auto;width:28px;background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.14))}
+.book.spread .page:last-child::after{content:"";position:absolute;inset:0 auto 0 0;width:28px;background:linear-gradient(90deg,rgba(0,0,0,.16),rgba(0,0,0,0))}
+.book.single .page{border-radius:6px}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(11,27,42,.78);color:var(--cloud);font:800 22px var(--body);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:3}
+.nav:hover{background:var(--water)}
+.nav[disabled]{opacity:.25;cursor:default}
+#prev{left:max(4px,env(safe-area-inset-left,0px))} #next{right:max(4px,env(safe-area-inset-right,0px))}
+footer{display:flex;align-items:center;gap:10px;min-width:0}
+.count{font:700 13px var(--body);font-variant-numeric:tabular-nums;color:var(--cloud);white-space:nowrap;min-width:9ch}
+.bar{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden;min-width:40px}
+.bar i{display:block;height:100%;background:var(--sun);width:0;transition:width .35s}
+.tool{border:1px solid var(--line);background:transparent;color:var(--cloud);font:700 12px var(--body);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.tool:hover{border-color:var(--water)}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px}
+.thumbs[hidden]{display:none!important}
+.thumb{flex:none;width:62px;border:2px solid transparent;border-radius:4px;padding:0;background:none;cursor:pointer;position:relative}
+.thumb img{display:block;width:100%;border-radius:2px}
+.thumb b{position:absolute;left:3px;bottom:3px;background:var(--night);color:var(--cloud);font:700 10px var(--body);padding:0 4px;border-radius:3px}
+.thumb[aria-current="true"]{border-color:var(--sun)}
+.hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(11,27,42,.85);color:var(--cloud);font:700 12px var(--body);padding:6px 12px;border-radius:999px;pointer-events:none;transition:opacity .6s;z-index:2}
+@media (max-width:640px){
+  .brand span{display:none}
+  header{flex-wrap:wrap}
+  .chips{margin-left:0;width:100%}
+  .nav{width:40px;height:40px;font-size:18px;background:rgba(11,27,42,.6)}
+  .tool.fs{display:none}
+}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+<meta name="description" content="Spowdi NOVA farmer storybook for Christian Impact Mission farmers in Yatta: solar drip irrigation, Nova Jamii and Nova Mkulima Mjanja, from dry land to a paid chilli harvest.">
+<meta property="og:title" content="Grow chilli. Own the harvest. | Spowdi Yatta Storybook">
+<meta property="og:description" content="Flip through the Spowdi NOVA farmer storybook for Yatta.">
+<meta property="og:image" content="pages/p-01.jpg">
+<meta name="theme-color" content="#0B1B2A">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}.dl{color:var(--cloud);font:700 12px var(--body);text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:8px;white-space:nowrap}.dl:hover{border-color:var(--water)}@media (max-width:640px){.dl{display:none}}</style>
+</head>
+<body>
+
+
+<div class="app">
+  <header>
+    <div class="brand"><h1>Grow chilli. Own the harvest.</h1><span>Spowdi × CIM · Yatta</span></div>
+    <nav class="chips" id="chips" aria-label="Chapters"></nav>
+  </header>
+
+  <main class="stage" id="stage" aria-label="Storybook pages">
+    <button class="nav" id="prev" aria-label="Previous page">‹</button>
+    <div class="book single" id="book" aria-live="polite"></div>
+    <button class="nav" id="next" aria-label="Next page">›</button>
+    <div class="hint" id="hint">Swipe or tap the arrows to turn the page</div>
+  </main>
+
+  <footer>
+    <span class="count" id="count">Page 1 of 16</span>
+    <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+    <button class="tool" id="gridBtn" aria-expanded="false" aria-controls="thumbs">All pages</button>
+    <button class="tool fs" id="fsBtn">Full screen</button>
+    <a class="dl" href="Spowdi_Yatta_Farmer_Storybook.pdf" download>Download PDF</a>
+  </footer>
+  <div class="thumbs" id="thumbs" hidden></div>
+</div>
+
+<script>
+(function(){
+  var TITLES=["Cover","Hard work. Small harvest.","Meet the Spowdi solar pump","Two ways to join Spowdi NOVA","Nova Jamii: farm together","Nova Jamii: your group file","Nova Jamii: one acre, eight plots","Nova Jamii: one pump, eight farmers","Nova Mkulima Mjanja","Money in your pocket","Your growth journey","Avoid these. Keep your profit.","Dry it right. Get Grade I.","Deliver to CIM. Get paid.","If you cannot pay, talk to us early","How to pay"];
+  var CHAPTERS=[["Start",0],["Nova Jamii",4],["Mkulima Mjanja",8],["Money",9],["Farming",10],["Selling",12],["Paying",14]];
+  var N=TITLES.length;
+  function src(i){return "pages/p-"+String(i+1).padStart(2,"0")+".jpg"}
+  function tsrc(i){return "pages/t-"+String(i+1).padStart(2,"0")+".jpg"}
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var book=document.getElementById("book"),stage=document.getElementById("stage");
+  var cur=0, spread=false, busy=false;
+
+  function isWide(){var r=stage.getBoundingClientRect();return r.width>=760 && r.width/r.height>1.05}
+  function viewOf(i){ // pages shown for page index i
+    if(!spread||i===0||i===N-1&&N%2===0) return [i];
+    var l=(i%2===1)?i:i-1; var v=[l]; if(l+1<N) v.push(l+1); return v;
+  }
+  function firstOfNext(){var v=viewOf(cur);return v[v.length-1]+1}
+  function firstOfPrev(){var v=viewOf(cur);var p=v[0]-1;if(p<0)return -1;return viewOf(p)[0]}
+
+  function render(dir){
+    var v=viewOf(cur);
+    var build=function(){
+      book.className="book "+(v.length>1?"spread":"single");
+      book.innerHTML="";
+      v.forEach(function(i){
+        var d=document.createElement("div");d.className="page";
+        var im=document.createElement("img");im.src=src(i);im.alt="Page "+(i+1)+": "+TITLES[i];im.decoding="async";
+        d.appendChild(im);book.appendChild(d);
+      });
+      size();
+    };
+    if(dir&&!reduce&&book.animate){
+      busy=true;
+      var out=book.animate([{transform:"rotateY(0deg) translateX(0)",opacity:1},{transform:"rotateY("+(dir>0?-14:14)+"deg) translateX("+(dir>0?-6:6)+"%)",opacity:0}],{duration:170,easing:"ease-in"});
+      out.onfinish=function(){build();var inn=book.animate([{transform:"rotateY("+(dir>0?12:-12)+"deg) translateX("+(dir>0?6:-6)+"%)",opacity:0},{transform:"rotateY(0deg) translateX(0)",opacity:1}],{duration:240,easing:"cubic-bezier(.2,.7,.2,1)"});inn.onfinish=function(){busy=false};};
+    } else build();
+    var label=v.length>1?("Pages "+(v[0]+1)+"–"+(v[1]+1)+" of "+N):("Page "+(v[0]+1)+" of "+N);
+    document.getElementById("count").textContent=label;
+    document.getElementById("bar").style.width=((v[v.length-1]+1)/N*100)+"%";
+    document.getElementById("prev").disabled=v[0]===0;
+    document.getElementById("next").disabled=v[v.length-1]===N-1;
+    document.querySelectorAll(".thumb").forEach(function(t,i){t.setAttribute("aria-current",v.indexOf(i)>-1?"true":"false")});
+    var active=0;CHAPTERS.forEach(function(c,k){if(v[0]>=c[1]||v[v.length-1]>=c[1])active=k});
+    document.querySelectorAll(".chip").forEach(function(c,k){c.setAttribute("aria-current",k===active?"true":"false")});
+    [firstOfNext(),firstOfPrev()].forEach(function(p){if(p>=0&&p<N){viewOf(p).forEach(function(i){var x=new Image();x.src=src(i)})}});
+    try{history.replaceState(null,"","#p"+(v[0]+1))}catch(e){}
+    try{localStorage.setItem("spowdi-yatta-page",String(v[0]))}catch(e){}
+  }
+  function size(){
+    var r=stage.getBoundingClientRect(), n=book.children.length||1;
+    var h=Math.min(r.height, (r.width-(n>1?0:0))/n*1638/1157);
+    var w=h*1157/1638;
+    Array.prototype.forEach.call(book.children,function(d){d.style.height=Math.floor(h)+"px";d.style.width=Math.floor(w)+"px"});
+  }
+  function go(i,dir){if(busy)return;i=Math.max(0,Math.min(N-1,i));if(viewOf(i)[0]===viewOf(cur)[0])return;cur=viewOf(i)[0];render(dir)}
+  function next(){var n=firstOfNext();if(n<N)go(n,1)}
+  function prev(){var p=firstOfPrev();if(p>=0)go(p,-1)}
+
+  // chapters and thumbs
+  var chips=document.getElementById("chips");
+  CHAPTERS.forEach(function(c){var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c[0];b.onclick=function(){go(c[1],c[1]>cur?1:-1)};chips.appendChild(b)});
+  var thumbs=document.getElementById("thumbs");
+  TITLES.forEach(function(t,i){var b=document.createElement("button");b.className="thumb";b.type="button";b.setAttribute("aria-label","Go to page "+(i+1)+": "+t);b.innerHTML='<img src="'+tsrc(i)+'" alt=""><b>'+(i+1)+'</b>';b.onclick=function(){go(i,i>cur?1:-1)};thumbs.appendChild(b)});
+
+  document.getElementById("next").onclick=next;
+  document.getElementById("prev").onclick=prev;
+  document.getElementById("gridBtn").onclick=function(){var h=!thumbs.hidden;thumbs.hidden=h;this.setAttribute("aria-expanded",String(!h));this.textContent=h?"All pages":"Hide pages"};
+  document.getElementById("fsBtn").onclick=function(){var el=document.documentElement;try{if(document.fullscreenElement){document.exitFullscreen()}else if(el.requestFullscreen){var p=el.requestFullscreen();if(p&&p.catch)p.catch(function(){})}}catch(e){}};
+  document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key==="PageDown"){next();e.preventDefault()}else if(e.key==="ArrowLeft"||e.key==="PageUp"){prev();e.preventDefault()}else if(e.key==="Home"){go(0,-1)}else if(e.key==="End"){go(N-1,1)}});
+
+  // swipe + tap halves
+  var sx=null,sy=null,moved=false;
+  stage.addEventListener("pointerdown",function(e){if(e.target.closest(".nav"))return;sx=e.clientX;sy=e.clientY;moved=false});
+  stage.addEventListener("pointermove",function(e){if(sx!==null&&Math.abs(e.clientX-sx)>12)moved=true});
+  stage.addEventListener("pointerup",function(e){if(sx===null)return;var dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();return}
+    if(!moved&&e.target.closest(".page")){var r=stage.getBoundingClientRect();(e.clientX-r.left)>r.width/2?next():prev()}});
+
+  function relayout(){var w=isWide();if(w!==spread){spread=w;cur=viewOf(cur)[0];render(0)}else size()}
+  window.addEventListener("resize",relayout);
+
+  // start page: hash, then remembered
+  var start=0,m=(location.hash||"").match(/^#p(\d+)$/);
+  if(m){start=parseInt(m[1],10)-1}else{try{var s=parseInt(localStorage.getItem("spowdi-yatta-page"),10);if(s>=0&&s<N)start=s}catch(e){}}
+  spread=isWide();cur=viewOf(Math.max(0,Math.min(N-1,start)))[0];render(0);
+  setTimeout(function(){var h=document.getElementById("hint");if(h)h.style.opacity="0"},3200);
+})();
+</script>
+
+</body>
+</html>
